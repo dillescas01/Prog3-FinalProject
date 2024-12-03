@@ -39,5 +39,8 @@ public:
     const unordered_set<string> &getTags() const {
         return tags;
     }
+    bool operator==(const Pelicula& other) const {
+        return titulo == other.titulo;
+    }
 };
 #endif

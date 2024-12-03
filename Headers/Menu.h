@@ -1,10 +1,11 @@
 #ifndef PROYECTOFINALP3_MENU_H
 #define PROYECTOFINALP3_MENU_H
-
-//Codigo alterntivo para Busqueda.h
+/*
 #include <iostream>
 #include <vector>
 #include <limits>
+#include <stdexcept>
+#include <algorithm>
 #include "Usuario.h"
 #include "Pelicula.h"
 #include "GrafosPeliculas.h"
@@ -16,7 +17,8 @@ vector<Pelicula> peliculas;
 
 // Función auxiliar para mostrar detalles de una película
 void mostrarDetallesPelicula(const Pelicula& pelicula) {
-    cout << "Titulo: " << pelicula.getTitulo() << endl;
+    cout << "\n--- Detalles de la Película ---\n";
+    cout << "Título: " << pelicula.getTitulo() << endl;
     cout << "Sinopsis: " << pelicula.getSinopsis() << endl;
     cout << "Tags: ";
     for (const auto& tag : pelicula.getTags()) {
@@ -41,36 +43,35 @@ T getValidatedInput(const string& prompt, T minVal, T maxVal) {
         string line;
         getline(cin, line);
         try {
-            input = static_cast<T>(stoi(line));
+            input = static_cast<T>(stod(line)); // Usa `stod` para manejar enteros y floats.
             if (input >= minVal && input <= maxVal) {
-                break;
+                return input;
             } else {
-                cout << "Entrada fuera de rango. ";
+                cout << "Entrada fuera de rango. Intente nuevamente.\n";
             }
-        } catch (const invalid_argument&) {
-            cout << "Entrada inválida. ";
+        } catch (const exception&) {
+            cout << "Entrada inválida. Intente nuevamente.\n";
         }
     }
-    return input;
 }
 
 // Menú de selección de películas
 class MovieSelectionMenu : public Menu {
 private:
-    vector<int> indexes; // Índices de las películas seleccionadas
+    vector<int> indexes; // Ahora almacena índices de películas
     int page = 0;
 
 public:
-    MovieSelectionMenu(const vector<int>& idx) : indexes(idx) {}
+    explicit MovieSelectionMenu(const vector<int>& idx) : indexes(idx) {}
 
     void display() override {
         int start = page * 5;
         int end = min(start + 5, static_cast<int>(indexes.size()));
 
-        cout << "\nPelículas disponibles:\n";
+        cout << "\n--- Películas Disponibles ---\n";
         for (int i = start; i < end; ++i) {
             cout << i - start + 1 << ". ";
-            mostrarDetallesPelicula(peliculas[indexes[i]]);
+            cout << peliculas[indexes[i]].getTitulo() << endl;
         }
 
         cout << "\nOpciones:\n";
@@ -89,13 +90,16 @@ public:
 
             switch (choice) {
                 case 1: {
+                    int maxOption = min(static_cast<int>(indexes.size()) - page * 5, 5);
                     int movieChoice = getValidatedInput<int>(
-                            "Seleccione el número de la película: ", 1, 5);
+                            "Seleccione el número de la película: ", 1, maxOption);
+
                     int movieIndex = indexes[page * 5 + movieChoice - 1];
                     mostrarDetallesPelicula(peliculas[movieIndex]);
 
                     int action = getValidatedInput<int>(
                             "\n1. Me gusta\n2. Ver más tarde\n3. Volver\nOpción: ", 1, 3);
+
                     if (action == 1) user.marcarFavorito(movieIndex);
                     else if (action == 2) user.marcarVerMasTarde(movieIndex);
                     break;
@@ -109,6 +113,9 @@ public:
                 case 4:
                     continueSearching = false;
                     break;
+                default:
+                    cout << "Vuelve a intentarlo\n";
+                    return;
             }
         }
     }
@@ -118,13 +125,13 @@ public:
 class MovieSearchMenu : public Menu {
 public:
     void display() override {
-        cout << "\nBuscar películas:\n";
+        cout << "\n--- Buscar Películas ---\n";
         cout << "1. Buscar por título\n";
         cout << "2. Buscar por tags\n";
         cout << "3. Volver al menú principal\n";
     }
 
-    void handleInput(Usuario& user) override {
+    void handleInput(Usuario &user) override {
         GrafoPeliculas grafoPeliculas;
         int option = getValidatedInput<int>("Seleccione una opción: ", 1, 3);
 
@@ -135,28 +142,7 @@ public:
                 getline(cin, titulo);
 
                 auto resultados = grafoPeliculas.busquedaPorTitulo(titulo, 5);
-                if (resultados.empty()) {
-                    cout << "No se encontraron resultados.\n";
-                } else {
-                    vector<int> indices; // Vector para almacenar los índices
-                    for (const auto& pelicula : resultados) {
-                        // Busca la posición de la película en el vector global `peliculas`
-                        auto it = find(peliculas.begin(), peliculas.end(), pelicula);
-                        if (it != peliculas.end()) {
-                            // Calcula el índice como la distancia desde el inicio
-                            indices.push_back(distance(peliculas.begin(), it));
-                        }
-                    }
-
-                    // Verifica si se encontraron índices válidos
-                    if (indices.empty()) {
-                        cout << "No se encontraron índices válidos en el vector global.\n";
-                    } else {
-                        MovieSelectionMenu menu(indices); // Pasa los índices al menú
-                        menu.handleInput(user);
-                    }
-                }
-
+                procesarResultados(resultados, user);
                 break;
             }
             case 2: {
@@ -165,40 +151,63 @@ public:
                 getline(cin, tag);
 
                 auto resultados = grafoPeliculas.busquedaPorTag(tag);
-                if (resultados.empty()) {
-                    cout << "No se encontraron resultados.\n";
-                } else {
-                    MovieSelectionMenu menu(resultados);
-                    menu.handleInput(user);
-                }
+                procesarResultados(resultados, user);
                 break;
             }
             case 3:
                 return;
+
+            default:
+                cout<<"Vuelve a intentarlo";
+                return;
+        }
+    }
+
+private:
+    void procesarResultados(const vector<Pelicula> &resultados, Usuario &user) {
+        if (resultados.empty()) {
+            cout << "No se encontraron resultados.\n";
+            return;
+        }
+
+        vector<int> indices; // Ahora almacena índices enteros
+        for (const auto &pelicula: resultados) {
+            auto it = find(peliculas.begin(), peliculas.end(), pelicula);
+            if (it != peliculas.end()) {
+                indices.push_back(distance(peliculas.begin(), it));
+            }
+        }
+
+        if (indices.empty()) {
+            cout << "No se encontraron índices válidos en el vector global.\n";
+        } else {
+            MovieSelectionMenu menu(indices);
+            menu.handleInput(user);
         }
     }
 };
 
-// Menú principal
-class MainMenu : public Menu {
+
+// Menú Principal Modificado
+class realizarBusqueda: public Menu {
 public:
     void display() override {
-        cout << "\nMenú Principal:\n";
+        cout << "\n--- Menú Principal ---\n";
         cout << "1. Ver mis favoritos\n";
         cout << "2. Ver más tarde\n";
         cout << "3. Buscar películas\n";
         cout << "4. Salir\n";
     }
 
-    void handleInput(Usuario& user) override {
+    void handleInput(Usuario &user) override {
         int option = getValidatedInput<int>("Seleccione una opción: ", 1, 4);
 
         switch (option) {
             case 1:
-                user.mostrarFavoritos(peliculas); //aun no declarado bien en usuario
+                user.mostrarFavoritos(peliculas);
                 break;
             case 2:
-                user.mostrarVerMasTarde(peliculas); //aun no declarado bien en usuario
+                user.mostrarVerMasTarde(peliculas);
                 break;
             case 3: {
                 MovieSearchMenu menu;
@@ -209,8 +218,13 @@ public:
             case 4:
                 cout << "Gracias por usar la aplicación.\n";
                 break;
+            default:
+                cout << "Vuelve a intentarlo\n";
+                return;
         }
     }
+
 };
 
+*/
 #endif // PROYECTOFINALP3_MENU_H

@@ -3,46 +3,42 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include "ConstructorPelicula.h"
+#include "GrafosPeliculas.h"
 using namespace std;
-
 
 class Usuario {
 private:
-    vector<int> likedMovies;
-    vector<int> watchLaterMovies;
+    vector<int> likedMovies;           // Películas favoritas
+    vector<int> watchLaterMovies;      // Películas para ver más tarde
 
-    bool yaEsFavorito(int movieIndex) const {
-        for (int index : likedMovies) {
-            if (index == movieIndex) {
-                return true;
-            }
-        }
-        return false;
-    }
 public:
+    // Función para marcar una película como favorita
     void marcarFavorito(int movieIndex) {
         likedMovies.push_back(movieIndex);
-        cout << "Movie added to liked list.\n";
+        cout << "Pelicula agregada a la lista de favoritos.\n";
     }
 
+    // Función para marcar una película para ver más tarde
     void marcarVerMasTarde(int movieIndex) {
         watchLaterMovies.push_back(movieIndex);
-        cout << "Movie added to watch later list.\n";
+        cout << "Pelicula agregada a la lista de ver mas tarde.\n";
     }
 
-    /*void showLikedMovies(Database* db) const {
-        cout << "Liked Movies:\n";
+    // Mostrar las películas favoritas
+    void mostrarFavoritos(const vector<Pelicula>& db) const {
+        cout << "Peliculas Favoritas:\n";
         for (int index : likedMovies) {
-            MovieFactory::displayMovie(MovieFactory::FULL, db->getMovies()[index]);
+            cout << db[index].getTitulo() << endl;
         }
     }
 
-    void showWatchLaterMovies(Database* db) const {
-        cout << "Watch Later Movies:\n";
+    // Mostrar las películas para ver más tarde
+    void mostrarVerMasTarde(const vector<Pelicula>& db) const {
+        cout << "Peliculas para ver mas tarde:\n";
         for (int index : watchLaterMovies) {
-            MovieFactory::displayMovie(MovieFactory::FULL, db->getMovies()[index]);
+            cout << db[index].getTitulo() << endl;
         }
     }
-     */
 };
-#endif
+#endif // PROYECTOFINALP3_USUARIO_H

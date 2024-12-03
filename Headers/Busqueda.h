@@ -4,36 +4,20 @@
 #include <iostream>
 #include <vector>
 #include <limits>
+#include <stdexcept>
+#include <algorithm>
+#include "Usuario.h"
 #include "Pelicula.h"
 #include "GrafosPeliculas.h"
-//Manú más eficiente, provisional y funcional
+
 using namespace std;
 
-// Mostrar los resultados en lotes y permitir navegar por ellos
-void mostrarResultados(const vector<Pelicula>& resultados, int& indice, int limite = 5) {
-    // Mostrar los resultados en lotes de 'limite'
-    for (int i = indice; i < indice + limite && i < resultados.size(); ++i) {
-        cout << i + 1 << ". Titulo: " << resultados[i].getTitulo() << endl;
-    }
+// Almacén global de películas
+vector<Pelicula> peliculas;
 
-    // Incrementar el índice para la próxima llamada
-    indice += limite;
-
-    // Verificar si hay más resultados para mostrar
-    if (indice < resultados.size()) {
-        cout << "¿Mostrar mas resultados? (s/n): ";
-        char opcion;
-        cin >> opcion;
-        if (opcion == 's' || opcion == 'S') {
-            mostrarResultados(resultados, indice, limite);
-        }
-    } else {
-        cout << "No hay mas resultados." << endl;
-    }
-}
-
-// Mostrar detalles de una película seleccionada
+// Función auxiliar para mostrar detalles de una película
 void mostrarDetallesPelicula(const Pelicula& pelicula) {
+    cout << "\n--- Detalles de la Pelicula ---\n";
     cout << "Titulo: " << pelicula.getTitulo() << endl;
     cout << "Sinopsis: " << pelicula.getSinopsis() << endl;
     cout << "Tags: ";
@@ -43,85 +27,204 @@ void mostrarDetallesPelicula(const Pelicula& pelicula) {
     cout << endl;
 }
 
-void realizarBusqueda(GrafoPeliculas& grafo) {
+// Clase base abstracta para menús
+class Menu {
+public:
+    virtual void display() = 0;
+    virtual void handleInput(Usuario& user) = 0;
+};
+
+// Función auxiliar para obtener entradas válidas
+template<typename T>
+T getValidatedInput(const string& prompt, T minVal, T maxVal) {
+    T input;
     while (true) {
-        cout << "\nSeleccione el tipo de busqueda:\n";
-        cout << "1. Busqueda por Título\n";
-        cout << "2. Busqueda por Palabra en Sinopsis\n";
-        cout << "3. Busqueda General\n";
-        cout << "4. Busqueda por Tag\n";
-        cout << "5. Salir\n";
-        cout << "Opcion: ";
-
-        int opcion;
-
-        // Validar entrada numérica
-        cin >> opcion;
-        if (cin.fail()) {
-            cin.clear(); // Limpia el estado de error
-            cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Descarta la entrada inválida
-            cout << "Entrada no valida. Por favor, ingrese un numero entre 1 y 5.\n";
-            continue; // Regresar al inicio del bucle
-        }
-
-        // Control de flujo con switch
-        int indice = 0;
-        switch (opcion) {
-            case 1: {
-                cout << "Ingrese el titulo a buscar: ";
-                string palabraBusqueda;
-                cin.ignore(); // Limpiar el buffer
-                getline(cin, palabraBusqueda);
-
-                vector<Pelicula> resultados = grafo.busquedaPorTitulo(palabraBusqueda);
-                cout << "Resultados de la busqueda por titulo '" << palabraBusqueda << "':\n";
-                mostrarResultados(resultados, indice);
-                break;
+        cout << prompt;
+        string line;
+        getline(cin, line);
+        try {
+            input = static_cast<T>(stod(line)); // Usa `stod` para manejar enteros y floats.
+            if (input >= minVal && input <= maxVal) {
+                return input;
+            } else {
+                cout << "Entrada fuera de rango. Intente nuevamente.\n";
             }
-            case 2: {
-                cout << "Ingrese la palabra a buscar en la sinopsis: ";
-                string palabraBusqueda;
-                cin.ignore(); // Limpiar el buffer
-                getline(cin, palabraBusqueda);
-
-                vector<Pelicula> resultados = grafo.busquedaPorPalabraEnSinopsis(palabraBusqueda);
-                cout << "Resultados de la busqueda por palabra en sinopsis '" << palabraBusqueda << "':\n";
-                mostrarResultados(resultados, indice);
-                break;
-            }
-            case 3: {
-                cout << "Ingrese la palabra para la busqueda general: ";
-                string palabraBusqueda;
-                cin.ignore(); // Limpiar el buffer
-                getline(cin, palabraBusqueda);
-
-                vector<Pelicula> resultados = grafo.busquedaGeneral(palabraBusqueda);
-                cout << "Resultados de la busqueda general '" << palabraBusqueda << "':\n";
-                mostrarResultados(resultados, indice);
-                break;
-            }
-            case 4: {
-                cout << "Ingrese el tag a buscar: ";
-                string palabraBusqueda;
-                cin.ignore(); // Limpiar el buffer
-                getline(cin, palabraBusqueda);
-
-                vector<Pelicula> resultados = grafo.busquedaPorTag(palabraBusqueda);
-                cout << "Resultados de la busqueda por tag '" << palabraBusqueda << "':\n";
-                mostrarResultados(resultados, indice);
-                break;
-            }
-            case 5: {
-                cout << "Saliendo del programa de busqueda.\n";
-                return; // Finaliza la función y sale del bucle
-            }
-            default: {
-                cout << "Opción no valida. Por favor, ingrese un numero entre 1 y 5.\n";
-                break; // Regresar al inicio del bucle
-            }
+        } catch (const exception&) {
+            cout << "Entrada invalida. Intente nuevamente.\n";
         }
     }
 }
 
-#endif
+// Menú de selección de películas
+class MovieSelectionMenu : public Menu {
+private:
+    vector<int> indexes; // Ahora almacena índices de películas
+    int page = 0;
 
+public:
+    explicit MovieSelectionMenu(const vector<int>& idx) : indexes(idx) {}
+
+    void display() override {
+        int start = page * 5;
+        int end = min(start + 5, static_cast<int>(indexes.size()));
+
+        cout << "\n--- Peliculas Disponibles ---\n";
+        for (int i = start; i < end; ++i) {
+            cout << i - start + 1 << ". ";
+            cout << peliculas[indexes[i]].getTitulo() << endl;
+        }
+
+        cout << "\nOpciones:\n";
+        cout << "1. Seleccionar pelicula\n";
+        if (end < indexes.size()) cout << "2. Ver las siguientes 5 peliculas\n";
+        if (page > 0) cout << "3. Ver las 5 peliculas anteriores\n";
+        cout << "4. Regresar al menu principal\n";
+    }
+
+    void handleInput(Usuario& user) override {
+        bool continueSearching = true;
+
+        while (continueSearching) {
+            display();
+            int choice = getValidatedInput<int>("Seleccione una opcion: ", 1, 4);
+
+            switch (choice) {
+                case 1: {
+                    int maxOption = min(static_cast<int>(indexes.size()) - page * 5, 5);
+                    int movieChoice = getValidatedInput<int>(
+                            "Seleccione el numero de la pelicula: ", 1, maxOption);
+
+                    int movieIndex = indexes[page * 5 + movieChoice - 1];
+                    mostrarDetallesPelicula(peliculas[movieIndex]);
+
+                    int action = getValidatedInput<int>(
+                            "\n1. Me gusta\n2. Ver mas tarde\n3. Volver\nOpcion: ", 1, 3);
+
+                    if (action == 1) user.marcarFavorito(movieIndex);
+                    else if (action == 2) user.marcarVerMasTarde(movieIndex);
+
+                }
+                case 2:
+                    if ((page + 1) * 5 < indexes.size()) ++page;
+
+                case 3:
+                    if (page > 0) --page;
+
+                case 4:
+                    continueSearching = false;
+                    break;
+                default:
+                    cout << "Vuelve a intentarlo\n";
+                    return;
+            }
+        }
+    }
+};
+
+// Menú de búsqueda de películas
+class MovieSearchMenu : public Menu {
+public:
+    void display() override {
+        cout << "\n--- Buscar Peliculas ---\n";
+        cout << "1. Buscar por titulo\n";
+        cout << "2. Buscar por tags\n";
+        cout << "3. Volver al menu principal\n";
+    }
+
+    void handleInput(Usuario &user) override {
+        GrafoPeliculas grafoPeliculas;
+        int option = getValidatedInput<int>("Seleccione una opcion: ", 1, 3);
+
+        switch (option) {
+            case 1: {
+                cout << "\nIngrese el titulo: ";
+                string titulo;
+                getline(cin, titulo);
+
+                auto resultados = grafoPeliculas.busquedaPorTitulo(titulo, 5);
+                procesarResultados(resultados, user);
+                return;
+            }
+            case 2: {
+                cout << "\nIngrese el tag: ";
+                string tag;
+                getline(cin, tag);
+
+                auto resultados = grafoPeliculas.busquedaPorTag(tag);
+                procesarResultados(resultados, user);
+                return;
+            }
+            case 3:
+                return;
+
+            default:
+                cout<<"Vuelve a intentarlo";
+                return;
+        }
+    }
+
+private:
+    void procesarResultados(const vector<Pelicula> &resultados, Usuario &user) {
+        if (resultados.empty()) {
+            cout << "No se encontraron resultados.\n";
+            return;
+        }
+
+        vector<int> indices; // Ahora almacena índices enteros
+        for (const auto &pelicula: resultados) {
+            auto it = find(peliculas.begin(), peliculas.end(), pelicula);
+            if (it != peliculas.end()) {
+                indices.push_back(distance(peliculas.begin(), it));
+            }
+        }
+
+        if (indices.empty()) {
+            cout << "No se encontraron índices válidos en el vector global.\n";
+        } else {
+            MovieSelectionMenu menu(indices);
+            menu.handleInput(user);
+        }
+    }
+};
+
+
+// Menú Principal Modificado
+class realizarBusqueda: public Menu {
+public:
+    void display() override {
+        cout << "\n--- Menu Principal ---\n";
+        cout << "1. Ver mis favoritos\n";
+        cout << "2. Ver mas tarde\n";
+        cout << "3. Buscar peliculas\n";
+        cout << "4. Salir\n";
+    }
+
+    void handleInput(Usuario &user) override {
+        int option = getValidatedInput<int>("Seleccione una opcion: ", 1, 4);
+
+        switch (option) {
+            case 1:
+                user.mostrarFavoritos(peliculas);
+                break;
+
+            case 2:
+                user.mostrarVerMasTarde(peliculas);
+                break;
+
+            case 3: {
+                MovieSearchMenu menu;
+                menu.display();
+                menu.handleInput(user);
+                break;
+            }
+            case 4:
+                cout << "Gracias por usar la aplicacion.\n";
+                exit(0);
+            default:
+                cout << "Vuelve a intentarlo\n";
+                return;
+        }
+    }
+
+};
+#endif // PROYECTOFINALP3_MENU_H

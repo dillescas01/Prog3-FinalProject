@@ -7,5 +7,11 @@ add_executable(proyectoP3 main.cpp
         main.cpp
         Headers/Menu.h
         Headers/Usuario.h
+        Headers/Repertorio.h
+        Headers/GrafosPeliculas.h
+        Headers/Pelicula.h
+        Headers/ConstructorPelicula.h
+        Headers/Nodo.h
+        Headers/Busqueda.h
 )
 
