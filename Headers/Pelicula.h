@@ -22,6 +22,8 @@ public:
             id(std::move(id)),
             titulo(title),
             sinopsis(sinopsis),
+
+
             tags(tags) {}
 
     const string &getId() const {
