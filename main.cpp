@@ -1,17 +1,9 @@
-//
-// Created by leo on 11/20/24.
-//
-
 #include <iostream>
-#include "GrafosPeliculas.h"
-#include "Repertorio.h"
-#include "Busqueda.h"
+#include "Headers/GrafosPeliculas.h"
+#include "Headers/Repertorio.h"
+#include "Headers/Busqueda.h"
 
-using std::cout;
-using std::cin;
-using std::endl;
-using std::string;
-using std::vector;
+using namespace std;
 
 int main(){
     Repertorio* repertorio = Repertorio::getInstancia();
