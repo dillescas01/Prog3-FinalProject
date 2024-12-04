@@ -24,8 +24,8 @@ Modelo principal para representar una película. Contiene atributos como ID, tí
 6. Repertorio.h:
 Gestiona un repositorio único de películas usando el patrón Singleton. Incluye métodos para cargar datos desde archivos CSV y procesarlos, como dividir tags entre comillas y agregar películas al sistema.
 
-7. GrafosPeliculas.h:
-Aporta la funcionalidad de búsqueda avanzada y conexiones entre películas dentro del grafo. Integra métodos de búsqueda por palabras clave en título, sinopsis o tags, con priorización de resultados.
+7. Usuario.h:
+Define las funcionalidades relacionadas con los usuarios del sistema, como su capacidad para realizar búsquedas personalizadas, guardar resultados favoritos, y posiblemente manejar perfiles o preferencias, integrándose con las funcionalidades del buscador.
 
 Cada header organiza y encapsula una parte del sistema, asegurando modularidad y claridad en la implementación del buscador.
 
