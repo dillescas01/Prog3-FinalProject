@@ -140,9 +140,9 @@ public:
         cout << "\nBuscar:\n";
         cout << "1. Buscar por Titulo\n";
         cout << "2. Buscar por tag\n";
-        cout << "1. Buscar por palabra en sinopsis\n";
-        cout << "2. Buscueda general\n";
-        cout << "3. Regresar al Menu Principal\n";
+        cout << "3. Buscar por palabra en sinopsis\n";
+        cout << "4. Buscueda general\n";
+        cout << "5. Regresar al Menu Principal\n";
         cout << "Ingrese su opcion: ";
     }
 
