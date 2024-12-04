@@ -5,7 +5,6 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(proyectoP3 main.cpp
         main.cpp
-        Headers/Menu.h
         Headers/Usuario.h
         Headers/Repertorio.h
         Headers/GrafosPeliculas.h
