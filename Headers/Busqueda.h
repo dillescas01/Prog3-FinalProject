@@ -30,15 +30,15 @@ public:
         }
 
         cout << "\nOpciones:\n";
-        cout << "1. Seleccionar Película\n";
+        cout << "1. Seleccionar Pelicula\n";
         if (end < peliculas.size()) {
-            cout << "2. Ver las siguientes 5 películas\n";
+            cout << "2. Ver las siguientes 5 peliculas\n";
         }
         if (page > 0) {
-            cout << "3. Ver las 5 películas anteriores\n";
+            cout << "3. Ver las 5 peliculas anteriores\n";
         }
         cout << "4. Regresar al Menu Principal\n";
-        cout << "Ingrese su opción: ";
+        cout << "Ingrese su opcion: ";
     }
 
     void handleInput(Usuario& usuario, GrafoPeliculas* grafo) override {
@@ -55,38 +55,41 @@ public:
                     if (choice >= 1 && choice <= 4) {
                         break;
                     } else {
-                        cout << "Opción inválida. Intente de nuevo: ";
+                        cout << "Opcion invalida. Intente de nuevo: ";
                     }
                 } catch (const invalid_argument&) {
-                    cout << "Opción inválida. Intente de nuevo: ";
+                    cout << "Opcion invalida. Intente de nuevo: ";
                 }
             }
 
             switch (choice) {
                 case 1: {
-                    cout << "Ingrese el número de la película a seleccionar: ";
+                    cout << "Ingrese el numero de la pelicula a seleccionar: ";
                     int movieChoice;
                     while (true) {
                         string input;
                         getline(cin, input);
                         try {
                             movieChoice = stoi(input);
-                            if (movieChoice > 0 && movieChoice <= 5 && (page * 5 + movieChoice - 1) < peliculas.size()) {
+                            if (movieChoice > 0 && movieChoice <= 5 &&
+                                (page * 5 + movieChoice - 1) < peliculas.size()) {
                                 break;
                             } else {
-                                cout << "Opción inválida. Intente de nuevo: ";
+                                cout << "Opcion invalida. Intente de nuevo: ";
                             }
-                        } catch (const invalid_argument&) {
-                            cout << "Opción inválida. Intente de nuevo: ";
+                        } catch (const invalid_argument &) {
+                            cout << "Opcion invalida. Intente de nuevo: ";
                         }
                     }
 
                     int movieIndex = page * 5 + movieChoice - 1;
-                    cout << "Película seleccionada: " << peliculas[movieIndex].getTitulo() << endl;
+                    cout << "IMBD ID: " << peliculas[movieIndex].getId() << endl;
+                    cout << "Pelicula seleccionada: " << peliculas[movieIndex].getTitulo() << endl;
+                    cout << "Sinopsis: " << peliculas[movieIndex].getSinopsis() << endl;
 
                     int userChoice;
-                    cout << "Opciones:\n1. Marcar como favorita\n2. Marcar como ver más tarde\n3. Regresar a la búsqueda\n4. Regresar al menu principal\n";
-                    cout << "Ingrese su opción: ";
+                    cout << "Opciones:\n1. Marcar como favorita\n2. Marcar como ver mas tarde\n3. Regresar a la busqueda\n4. Regresar al menu principal\n";
+                    cout << "Ingrese su opcion: ";
                     while (true) {
                         string input;
                         getline(cin, input);
@@ -95,10 +98,10 @@ public:
                             if (userChoice >= 1 && userChoice <= 4) {
                                 break;
                             } else {
-                                cout << "Opción inválida. Intente de nuevo: ";
+                                cout << "Opcion invalida. Intente de nuevo: ";
                             }
                         } catch (const invalid_argument&) {
-                            cout << "Opción inválida. Intente de nuevo: ";
+                            cout << "Opcion invalida. Intente de nuevo: ";
                         }
                     }
 
@@ -140,7 +143,7 @@ public:
         cout << "1. Buscar por palabra en sinopsis\n";
         cout << "2. Buscueda general\n";
         cout << "3. Regresar al Menu Principal\n";
-        cout << "Ingrese su opción: ";
+        cout << "Ingrese su opcion: ";
     }
 
     void handleInput(Usuario& usuario, GrafoPeliculas* grafo) override {
@@ -156,7 +159,7 @@ public:
                     cout << "Opcion invalida. Intente de nuevo: ";
                 }
             } catch (const invalid_argument&) {
-                cout << "Opción invalida. Intente de nuevo: ";
+                cout << "Opcion invalida. Intente de nuevo: ";
             }
         }
 
@@ -255,10 +258,10 @@ public:
 
         switch (option) {
             case 1:
-                cout <<" ";
+                cout <<"Mostrar favoritos: ";
                 break;
             case 2:
-                cout << " ";
+                cout << "Mostrar ver más tarde: ";
                 break;
             case 3: {
                 MovieSearchMenu searchMenu;
