@@ -153,7 +153,7 @@ public:
             getline(cin, input);
             try {
                 option = stoi(input);
-                if (option >= 1 && option <= 3) {
+                if (option >= 1 && option <= 4 ) {
                     break;
                 } else {
                     cout << "Opcion invalida. Intente de nuevo: ";
