@@ -1,36 +1,34 @@
+//
+// Created by leo on 11/20/24.
+//
+
 #include <iostream>
-#include "headers/Repertorio.h"    // Para cargar las películas
-#include "headers/GrafosPeliculas.h" // Para el grafo
-#include "headers/Usuario.h"        // Para el usuario
-#include "headers/Busqueda.h"           // Para los menús
+#include "headers/GrafosPeliculas.h"
+#include "headers/Repertorio.h"
+#include "headers/Busqueda.h"
 
-using namespace std;
+using std::cout;
+using std::cin;
+using std::endl;
+using std::string;
+using std::vector;
 
-int main() {
-    // Cargar el repertorio de películas
+int main(){
     Repertorio* repertorio = Repertorio::getInstancia();
-    repertorio->leerCSV("data_corregida.csv");
+    repertorio ->leerCSV("data_corregida.csv");
 
-    // Crear el grafo de películas
     GrafoPeliculas grafoPeliculas;
-    const auto& peliculas = repertorio->getPeliculas();
-    for (const auto& par : peliculas) {
+    const auto& peliculas = repertorio-> getPeliculas();
+    for (const auto& par:peliculas){
         grafoPeliculas.agregarPelicula(par.second);
     }
 
-    // Crear un objeto Usuario
-    Usuario usuario;
-
-    // Mostrar mensaje de carga
     cout << "Cargando..." << endl;
+
+
     cout << "-------------------------------------------" << endl;
 
-    // Menú Principal
+    realizarBusqueda(grafoPeliculas);
 
-    while (true) {
-        realizarBusqueda menuPrincipal;
-        menuPrincipal.display();
-        menuPrincipal.handleInput(usuario);
-    }
-
+    return 0;
 }
