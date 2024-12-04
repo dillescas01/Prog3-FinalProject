@@ -3,9 +3,9 @@
 //
 
 #include <iostream>
-#include "GrafosPeliculas.h"
-#include "Repertorio.h"
-#include "Busqueda.h"
+#include "headers/GrafosPeliculas.h"
+#include "headers/Repertorio.h"
+#include "headers/Busqueda.h"
 
 using std::cout;
 using std::cin;
